@@ -1,0 +1,7 @@
+cmake*/
+*.exe
+out/
+.vs/
+.idea/
+x64/
+Denug/
