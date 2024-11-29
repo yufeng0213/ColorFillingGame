@@ -24,4 +24,7 @@ private:
 
 public slots:
     void on_btn_threshold_clicked();
+    void on_btn_reset_clicked();
+    void on_btn_adaptive_threshold_clicked();
+    void on_btn_remove_small_centroids_clicked();
 };
