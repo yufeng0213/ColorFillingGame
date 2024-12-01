@@ -2,6 +2,10 @@
 #include <opencv2/opencv.hpp>
 #include <qpixmap.h>
 #include <qimage.h>
+#include <fstream>
+#include <sstream>
+#include <qgridlayout.h>
+
 ColorFillingGame::ColorFillingGame(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -10,6 +14,8 @@ ColorFillingGame::ColorFillingGame(QWidget *parent)
     std::string filePath = "./images/wuxia/1.png";
     _srcImage = cv::imread(filePath);
     showImage();
+
+    loadWidgetColor("./colors.txt");
 }
 
 ColorFillingGame::~ColorFillingGame()
@@ -28,7 +34,8 @@ void ColorFillingGame::showImage()
     //ui.label_show_img->setPixmap();
 
     cv::resize(_curImage, _curImage, cv::Size(labelWidth, labelHeight));
-    cv::cvtColor(_curImage, _curImage, cv::COLOR_BGR2RGB);
+    cv::Mat rgbImage;
+    cv::cvtColor(_curImage, rgbImage, cv::COLOR_BGR2RGB);
     QImage image = QImage(_curImage.data, labelWidth, labelHeight, labelWidth * 3, QImage::Format_RGB888);
     QPixmap pixmap = QPixmap::fromImage(image);
     ui.label_show_img->setPixmap(pixmap);
@@ -62,9 +69,54 @@ void ColorFillingGame::setLabelResolution(int width, int height)
     ui.label_resolution->setText(resoultion);
 }
 
+void ColorFillingGame::loadWidgetColor(std::string path)
+{
+    std::ifstream infile(path);
+    if (!infile.is_open()) {
+        return;
+    }
+
+    std::string line;
+    char color[7];
+    std::vector<std::string> colors;
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+        color[0] = '#';
+        if (iss >> color[1] >> color[2] >> color[3] >> color[4] >> color[5] >> color[6]) {
+            colors.push_back(std::string(color, 7));
+        }
+    }
+
+    infile.close();
+
+    int cols = 7;
+    int rows = 4;
+    if (colors.size() / cols > 4) {
+        rows = 4;
+    }
+    else {
+        rows = colors.size() / cols;
+    }
+
+    QGridLayout* gridLayout = new QGridLayout(ui.widget_colors);
+
+    for (int row = 0; row < rows; row++) {
+        for (int col = 0; col < cols; col++) {
+            QLabel* label = new QLabel(" ");
+            label->setFrameShadow(QFrame::Sunken);
+            label->setFrameShape(QFrame::Panel);
+            std::string stylesheet = "background-color: " + colors[row * cols + col];
+            label->setStyleSheet(QString::fromStdString(stylesheet));
+
+            gridLayout->addWidget(label, row, col);
+        }
+    }
+}
+
 void ColorFillingGame::on_btn_reset_clicked()
 {
     _curImage = _srcImage.clone();
+    cv::resize(_curImage, _curImage, cv::Size(ui.label_show_img->width(), ui.label_show_img->height()));
     setLabelShowImage(_curImage.data, _curImage.cols, _curImage.rows, _curImage.channels());
 }
 

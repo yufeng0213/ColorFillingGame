@@ -16,6 +16,8 @@ private:
 
     void setLabelShowImage(unsigned char* data,int width,int height,int channels);
     void setLabelResolution(int width, int height);
+
+    void loadWidgetColor(std::string path);
 private:
     cv::Mat _srcImage;
     cv::Mat _curImage;
